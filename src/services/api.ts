@@ -25,43 +25,41 @@ const { data: _data, error } = await supabase.storage
     return publicUrl
   },
 
-  // Upload inventory image
   uploadInventoryImage: async (file: File, itemId: string): Promise<string> => {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${itemId}-${Date.now()}.${fileExt}`
-    const filePath = `inventory-images/${fileName}`
+  const fileExt = file.name.split('.').pop()
+  const fileName = `${itemId}-${Date.now()}.${fileExt}`
+  const filePath = `inventory-images/${fileName}`
 
-const { data: _data2, error: error2 } = await supabase.storage
-      .from('inventory-images')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: true
-      })
+  // PERBAIKAN: Gunakan 'error2' bukan 'error'
+  const { data: _data2, error: error2 } = await supabase.storage
+    .from('inventory-images')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true
+    })
 
-    if (error) throw error
+  if (error2) throw error2 // ✅ BENAR: Gunakan 'error2'
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('inventory-images')
-      .getPublicUrl(filePath)
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('inventory-images')
+    .getPublicUrl(filePath)
 
-    return publicUrl
-  },
+  return publicUrl
+},
 
-  // Delete image
   deleteImage: async (url: string): Promise<void> => {
-    // Extract file path from URL
-    const urlParts = url.split('/')
-    const bucket = urlParts[3]
-    const filePath = urlParts.slice(4).join('/')
+  // Extract file path from URL
+  const urlParts = url.split('/')
+  const bucket = urlParts[3]
+  const filePath = urlParts.slice(4).join('/')
 
-    const { error } = await supabase.storage
-      .from(bucket)
-      .remove([filePath])
+  const { error: deleteError } = await supabase.storage // ✅ Beri nama variabel
+    .from(bucket)
+    .remove([filePath])
 
-    if (error) throw error
-  },
-
+  if (deleteError) throw deleteError // ✅ Gunakan variabel yang benar
+},
   // Get image URL
   getImageUrl: (path: string, bucket: string = 'book-covers'): string => {
     const { data: { publicUrl } } = supabase.storage
